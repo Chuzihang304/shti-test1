@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHTI社会学人格测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f8f5f0 0%, #e8e4dc 100%);
+            min-height: 100vh;
+        }
+        
+        .serif {
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .option-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .option-card:hover {
+            transform: translateY(-2px);
+            border-color: #4a5568;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f5f0 100%);
+        }
+        
+        .share-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .share-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="py-8 px-4">
+    <div class="max-w-2xl mx-auto">
+        
+        <!-- 首页 -->
+        <div id="home-page" class="fade-in">
+            <div class="text-center mb-12">
+                <h1 class="serif text-5xl md:text-6xl font-bold text-gray-800 mb-4">SHTI</h1>
+                <p class="text-xl md:text-2xl text-gray-600 mb-2">社会学人格测试</p>
+                <div class="w-24 h-1 bg-gray-400 mx-auto my-6"></div>
+                <p class="text-gray-500 max-w-md mx-auto leading-relaxed">
+                    16道日常题，解锁你灵魂里住着的社会学大师<br>
+                    无专业门槛，凭第一直觉选择即可
+                </p>
+            </div>
+            
+            <div class="text-center">
+                <button onclick="startTest()" 
+                        class="bg-gray-800 text-white px-12 py-4 rounded-full text-lg font-medium hover:bg-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    开始测试
+                </button>
+            </div>
+            
+            <div class="mt-16 text-center text-gray-400 text-sm">
+                <p>Sociological Human Type Indicator</p>
+            </div>
+        </div>
+        
+        <!-- 答题页 -->
+        <div id="quiz-page" class="hidden fade-in">
+            <!-- 进度条 -->
+            <div class="mb-8">
+                <div class="flex justify-between text-sm text-gray-500 mb-2">
+                    <span>第 <span id="current-q">1</span>/16 题</span>
+                    <span id="progress-text">6%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="progress-bar bg-gray-700 h-2 rounded-full" style="width: 6%"></div>
+                </div>
+            </div>
+            
+            <!-- 题目 -->
+            <div class="mb-8">
+                <h2 id="question-text" class="serif text-2xl md:text-3xl font-semibold text-gray-800 leading-relaxed"></h2>
+            </div>
+            
+            <!-- 选项 -->
+            <div id="options-container" class="space-y-4">
+                <!-- 选项会动态插入这里 -->
+            </div>
+        </div>
+        
+        <!-- 结果页 -->
+        <div id="result-page" class="hidden fade-in">
+            <div id="result-content" class="result-card rounded-3xl shadow-2xl p-8 md:p-12">
+                <!-- 结果内容会动态插入这里 -->
+            </div>
+            
+            <!-- 分享区域 -->
+            <div class="mt-8 space-y-4">
+                <!-- 生成海报按钮 -->
+                <button onclick="generatePoster()" 
+                        class="share-btn w-full bg-green-600 text-white py-4 rounded-2xl font-medium text-lg shadow-lg flex items-center justify-center gap-3">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18.5 15.5a2.5 2.5 0 0 0 1.54-4.5A2.5 2.5 0 0 0 15 8.5a2.5 2.5 0 0 0-4.5 1.54 2.5 2.5 0 0 0 0 3.92A2.5 2.5 0 0 0 15 15.5a2.5 2.5 0 0 0 3.5-1.54z"/>
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                    </svg>
+                    生成海报 · 分享朋友圈
+                </button>
+                
+                <!-- 二维码分享 -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h3 class="text-center text-gray-700 font-medium mb-4">扫码分享给朋友</h3>
+                    <div class="flex justify-center">
+                        <div id="qrcode"></div>
+                    </div>
+                </div>
+                
+                <!-- 重新测试 -->
+                <button onclick="restartTest()" 
+                        class="w-full bg-gray-100 text-gray-700 py-4 rounded-2xl font-medium hover:bg-gray-200 transition-all">
+                    重新测试
+                </button>
+            </div>
+        </div>
+        
+        <!-- 海报预览页 -->
+        <div id="poster-page" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden">
+                <div id="poster-content" class="p-8">
+                    <!-- 海报内容会动态插入这里 -->
+                </div>
+                <div class="p-6 bg-gray-50 flex gap-4">
+                    <button onclick="closePoster()" 
+                            class="flex-1 py-3 rounded-xl bg-gray-200 text-gray-700 font-medium">
+                        关闭
+                    </button>
+                    <button onclick="downloadPoster()" 
+                            class="flex-1 py-3 rounded-xl bg-gray-800 text-white font-medium">
+                        保存图片
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 测试数据
+        const questions = [
+            { dimension: 1, text: "朋友努力很久没升职，你第一反应是？", options: ["大环境不行，行业规则太苛刻", "公司晋升机制卡得太死", "他可以调整下工作方法", "是他的个人能力没匹配到位"] },
+            { dimension: 1, text: "普通人拍短视频爆火，你第一反应是？", options: ["踩中了平台的流量风口", "赶上了当下的内容趋势", "博主有自己的过人之处", "全靠博主的个人能力和特色"] },
+            { dimension: 1, text: "同学考研二战落榜，你会怎么安慰？", options: ["今年报考人数太多，大环境太难", "分数线暴涨，不是他的问题", "咱们复盘调整，下次再试", "换个赛道，说不定更适合他"] },
+            { dimension: 1, text: "选新工作，你最看重？", options: ["行业前景和公司稳定性", "薪资福利和硬性保障", "能不能学到东西，有成长", "自己喜不喜欢，开不开心"] },
+            { dimension: 2, text: "外卖员超时被投诉上热搜，你第一反应是？", options: ["平台规则太恶心，压榨骑手", "顾客太苛刻，完全不懂体谅", "先看看完整的事情经过", "想知道双方各自的难处"] },
+            { dimension: 2, text: "网上有人和你观点完全相反，你会？", options: ["这人三观有问题，太离谱", "站着说话不腰疼，太自私", "好奇他为什么会这么想", "想了解他的经历和信息来源"] },
+            { dimension: 2, text: "朋友和对象吵架找你哭诉，你会？", options: ["立刻站队，帮他骂对方", "对方太过分，完全不体谅人", "先听完整件事的来龙去脉", "想知道双方吵架的核心原因"] },
+            { dimension: 2, text: "看社会新闻/纪录片，你核心想？", options: ["看到不公，找到改变的方法", "认清问题，为弱者发声", "看懂世界的不同面", "了解不同人的生活和想法"] },
+            { dimension: 3, text: "组队做项目，你觉得成功的核心是？", options: ["大家目标一致，互相信任", "团队氛围好，愿意互相配合", "分工明确，权责清晰", "利益分配合理，奖惩明确"] },
+            { dimension: 3, text: "和朋友旅行闹矛盾，你会怎么解决？", options: ["坐下来好好聊，互相体谅", "照顾彼此的感受，各退一步", "提前定好规则，按规则来", "分清权责，谁的问题谁负责"] },
+            { dimension: 3, text: "小区业主和物业起冲突，你觉得该怎么解决？", options: ["业主先统一意见，达成共识", "大家好好沟通，互相理解", "选代表和物业谈判博弈", "用规则维权，争取最大利益"] },
+            { dimension: 3, text: "班级/公司定新规则，你觉得核心是？", options: ["大家都认可，才会自觉遵守", "符合所有人的核心诉求", "明确奖惩，违规就有惩罚", "规则清晰，没有模糊地带"] },
+            { dimension: 4, text: "校园霸凌频发，你觉得根源解决办法是？", options: ["出台严格的惩戒制度，加强监管", "明确霸凌后果，零容忍处理", "改变校园风气，做价值观引导", "让孩子理解尊重，找到自我价值"] },
+            { dimension: 4, text: "选城市定居，你最看重？", options: ["房价、医疗、教育等硬资源", "工资水平和发展机会", "城市的文化氛围和生活节奏", "有没有合得来的朋友，过得开心"] },
+            { dimension: 4, text: "看一部电影，你最容易被什么戳中？", options: ["时代对普通人命运的塑造", "现实环境对人生的影响", "主角的内心成长与情感表达", "主角对人生意义的追寻"] },
+            { dimension: 4, text: "朋友结婚纠结办不办婚礼，你会建议？", options: ["先算好预算和收支的账", "看双方家庭的习俗和要求", "看你们自己想不想要", "看婚礼有没有专属纪念意义"] }
+        ];
+
+        const personalities = {
+            "SCFI": { name: "马克思型", title: "时代破壁人", tags: ["清醒反抗者", "弱者发声者", "理想实干家"], desc: "天生能看透环境里的不公与结构性困境，永远站在弱势者一边，爱憎分明，有极强的原则性，坚信看懂世界是为了改变世界。", slogan: "为弱者发声，为公平奔走" },
+            "SEUI": { name: "涂尔干型", title: "秩序守护者", tags: ["理性务实者", "规则搭建者", "团队定盘星"], desc: "极致理性严谨，坚信秩序来自共识与规则，做事沉稳可靠，擅长协调混乱局面，给身边人满满的安全感。", slogan: "以规则筑秩序，以共识聚人心" },
+            "AEUM": { name: "戈夫曼型", title: "人间观察家", tags: ["细腻共情者", "社交艺术家", "温柔生活家"], desc: "情商拉满，能精准捕捉人际间的微妙情绪，擅长倾听共情，尊重每个人的独特性，看透社交套路仍选择真诚待人。", slogan: "于日常见人心，于烟火寻意义" },
+            "ACFM": { name: "福柯型", title: "规训破壁人", tags: ["叛逆解构者", "自由先行者", "边界开拓者"], desc: "对主流规训、刻板标准天生警惕，拒绝随波逐流，坚定捍卫多元与少数群体的权利，一生追求精神自由与自我定义。", slogan: "拒绝被定义，一生都自由" },
+            "SCFM": { name: "布迪厄型", title: "阶层解码者", tags: ["通透洞察者", "规则拆解人", "清醒处世者"], desc: "双重视野看透社会隐形壁垒，既懂阶层规则的束缚，也懂文化审美的隐形权力，为人圆融不世故，清醒不随流。", slogan: "看透世事规则，守住自我本心" },
+            "SEUM": { name: "韦伯型", title: "理性集大成者", tags: ["全能理性者", "六边形战士", "平衡掌控者"], desc: "拒绝非黑即白的极端思维，既能看清环境约束，也相信个人力量，在理想与现实间找到完美平衡，是团队的智囊与调停者。", slogan: "认清世界真相，依然热爱生活" },
+            "AEFI": { name: "帕森斯型", title: "系统搭建者", tags: ["严谨架构师", "全局规划者", "稳定操盘手"], desc: "拥有极致系统思维，擅长把复杂事务拆解成清晰模块，搭建高效运转的规则体系，做事规划性拉满，永远有预案。", slogan: "以系统谋全局，以架构定未来" },
+            "ACEFIM": { name: "贝克型", title: "风险领航者", tags: ["时代先行者", "风险吹哨人", "不确定里的光"], desc: "对时代变化与潜在风险有极强前瞻性，拥抱不确定性，既懂自由的珍贵，也担得起自由的责任，在变化中活出自己的确定性。", slogan: "于不确定中，活出自带的光芒" }
+        };
+
+        // 游戏状态
+        let currentQuestion = 0;
+        let scores = { S: 0, A: 0, C: 0, E: 0, U: 0, F: 0, I: 0, M: 0 };
+        const dimensionMap = { 1: ['S', 'A'], 2: ['C', 'E'], 3: ['U', 'F'], 4: ['I', 'M'] };
+
+        // 开始测试
+        function startTest() {
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('quiz-page').classList.remove('hidden');
+            showQuestion();
+        }
+
+        // 显示题目
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('current-q').textContent = currentQuestion + 1;
+            const progress = ((currentQuestion + 1) / 16) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = Math.round(progress) + '%';
+            document.getElementById('question-text').textContent = q.text;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            q.options.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'option-card bg-white p-5 rounded-2xl cursor-pointer shadow-md';
+                div.innerHTML = `<span class="text-gray-400 font-medium mr-3">${String.fromCharCode(9312 + i)}</span><span class="text-gray-700">${opt}</span>`;
+                div.onclick = () => selectOption(i);
+                container.appendChild(div);
+            });
+        }
+
+        // 选择选项
+        function selectOption(index) {
+            const q = questions[currentQuestion];
+            const [left, right] = dimensionMap[q.dimension];
+            
+            if (index === 0) scores[left] += 2;
+            else if (index === 1) scores[left] += 1;
+            else if (index === 2) scores[right] += 1;
+            else scores[right] += 2;
+            
+            currentQuestion++;
+            
+            if (currentQuestion < 16) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        // 计算结果
+        function calculateResult() {
+            const d1 = scores.S >= scores.A ? 'S' : 'A';
+            const d2 = scores.C >= scores.E ? 'C' : 'E';
+            const d3 = scores.U >= scores.F ? 'U' : 'F';
+            const d4 = scores.I >= scores.M ? 'I' : 'M';
+            
+            let code = d1 + d2 + d3 + d4;
+            
+            if (!personalities[code]) {
+                const balanced = [scores.S === scores.A, scores.C === scores.E, scores.U === scores.F, scores.I === scores.M];
+                if (balanced.filter(b => b).length >= 2) {
+                    code = 'SEUM';
+                } else {
+                    code = 'ACEFIM';
+                }
+            }
+            
+            return personalities[code];
+        }
+
+        // 显示结果
+        function showResult() {
+            const result = calculateResult();
+            document.getElementById('quiz-page').classList.add('hidden');
+            document.getElementById('result-page').classList.remove('hidden');
+            
+            const resultContent = document.getElementById('result-content');
+            resultContent.innerHTML = `
+                <div class="text-center mb-8">
+                    <p class="text-gray-500 text-sm mb-2">你的社会学人格是</p>
+                    <h2 class="serif text-4xl md:text-5xl font-bold text-gray-800 mb-2">${result.name}</h2>
+                    <p class="text-xl text-gray-600">${result.title}</p>
+                </div>
+                
+                <div class="flex flex-wrap justify-center gap-2 mb-8">
+                    ${result.tags.map(tag => `<span class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm">${tag}</span>`).join('')}
+                </div>
+                
+                <div class="bg-gray-50 rounded-2xl p-6 mb-8">
+                    <p class="text-gray-700 leading-relaxed">${result.desc}</p>
+                </div>
+                
+                <div class="text-center">
+                    <p class="serif text-lg text-gray-800 font-semibold italic">"${result.slogan}"</p>
+                </div>
+            `;
+            
+            QRCode.toCanvas(document.createElement('canvas'), window.location.href, { width: 150, margin: 2 }, function(error, canvas) {
+                if (error) console.error(error);
+                const qrcodeDiv = document.getElementById('qrcode');
+                qrcodeDiv.innerHTML = '';
+                canvas.className = 'rounded-lg shadow-md';
+                qrcodeDiv.appendChild(canvas);
+            });
+        }
+
+        // 生成海报
+        function generatePoster() {
+            const result = calculateResult();
+            const posterContent = document.getElementById('poster-content');
+            posterContent.innerHTML = `
+                <div class="text-center">
+                    <div class="mb-8">
+                        <h1 class="serif text-3xl font-bold text-gray-800 mb-1">SHTI</h1>
+                        <p class="text-sm text-gray-500">社会学人格测试</p>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <p class="text-gray-500 text-sm mb-2">我的社会学人格是</p>
+                        <h2 class="serif text-4xl font-bold text-gray-800 mb-2">${result.name}</h2>
+                        <p class="text-lg text-gray-600">${result.title}</p>
+                    </div>
+                    
+                    <div class="flex flex-wrap justify-center gap-2 mb-8">
+                        ${result.tags.map(tag => `<span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs">${tag}</span>`).join('')}
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-5 mb-8">
+                        <p class="text-gray-700 text-sm leading-relaxed">${result.desc}</p>
+                    </div>
+                    
+                    <p class="serif text-base text-gray-800 font-semibold italic mb-8">"${result.slogan}"</p>
+                    
+                    <div class="flex items-center justify-center gap-4 pt-4 border-t border-gray-200">
+                        <div id="poster-qrcode"></div>
+                        <div class="text-left">
+                            <p class="text-sm text-gray-700 font-medium">扫码测测你的人格</p>
+                            <p class="text-xs text-gray-500">SHTI社会学人格测试</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('poster-page').classList.remove('hidden');
+            
+            QRCode.toCanvas(document.createElement('canvas'), window.location.href, { width: 80, margin: 1 }, function(error, canvas) {
+                if (error) console.error(error);
+                const qrcodeDiv = document.getElementById('poster-qrcode');
+                qrcodeDiv.innerHTML = '';
+                canvas.className = 'rounded';
+                qrcodeDiv.appendChild(canvas);
+            });
+        }
+
+        // 下载海报
+        function downloadPoster() {
+            const poster = document.getElementById('poster-content');
+            html2canvas(poster, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'SHTI社会学人格测试结果.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // 关闭海报
+        function closePoster() {
+            document.getElementById('poster-page').classList.add('hidden');
+        }
+
+        // 重新测试
+        function restartTest() {
+            currentQuestion = 0;
+            scores = { S: 0, A: 0, C: 0, E: 0, U: 0, F: 0, I: 0, M: 0 };
+            document.getElementById('result-page').classList.add('hidden');
+            document.getElementById('home-page').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
